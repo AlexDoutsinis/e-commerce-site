@@ -1,16 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Link, Route } from "react-router-dom";
 import "./App.css";
 
 import AddProduct from "./components/AddProduct";
 import ProductList from "./components/ProductList";
 import SingleProduct from "./components/SingleProduct";
+import Cart from "./components/Cart";
 
 function App() {
   const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+
+  useEffect(() => {
+    setProducts(JSON.parse(localStorage.getItem("products")) || []);
+    setCart(JSON.parse(localStorage.getItem("cart")) || []);
+  }, []);
 
   function addProduct(product) {
-    setProducts([...products, product]);
+    const updatedProducts = [...products, product];
+    setProducts(updatedProducts);
+    localStorage.setItem("products", JSON.stringify(updatedProducts));
   }
 
   function deleteProduct(index) {
@@ -20,6 +29,28 @@ function App() {
       .concat(updatedProducts.slice(index + 1, updatedProducts.length));
 
     setProducts(updatedProducts);
+    localStorage.setItem("products", JSON.stringify(updatedProducts));
+  }
+
+  function addToCart({ product, quantity }) {
+    const index = cart.findIndex(
+      itemInCart => itemInCart.product.slug === product.slug
+    );
+
+    let newCart = [];
+
+    if (index === -1) {
+      //not existing
+      newCart = [...cart, { product, quantity }];
+    } else {
+      quantity += cart[index].quantity;
+      newCart = cart
+        .filter(item => item.product.slug !== product.slug)
+        .concat({ product, quantity });
+    }
+
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
   }
 
   return (
@@ -31,6 +62,7 @@ function App() {
         </aside>
 
         <main>
+          <Cart cart={cart} />
           <Route
             exact
             path="/"
@@ -48,7 +80,15 @@ function App() {
               <AddProduct addProduct={addProduct} history={history} />
             )}
           />
-          <Route path="/product/:slug" component={SingleProduct} />
+          <Route
+            path="/product/:slug"
+            render={({ match }) => (
+              <SingleProduct
+                product={products.find(p => p.slug === match.params.slug)}
+                addToCart={addToCart}
+              />
+            )}
+          />
         </main>
       </div>
     </Router>
