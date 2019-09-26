@@ -13,6 +13,15 @@ function App() {
     setProducts([...products, product]);
   }
 
+  function deleteProduct(index) {
+    let updatedProducts = [...products];
+    updatedProducts = updatedProducts
+      .slice(0, index)
+      .concat(updatedProducts.slice(index + 1, updatedProducts.length));
+
+    setProducts(updatedProducts);
+  }
+
   return (
     <Router>
       <div id="app">
@@ -22,7 +31,17 @@ function App() {
         </aside>
 
         <main>
-          <Route exact path="/" component={ProductList} />
+          <Route
+            exact
+            path="/"
+            render={({ history }) => (
+              <ProductList
+                products={products}
+                deleteProduct={deleteProduct}
+                history={history}
+              />
+            )}
+          />
           <Route
             path="/add-product"
             render={({ history }) => (
