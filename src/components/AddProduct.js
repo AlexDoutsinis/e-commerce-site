@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { slugify } from "../utils/slugify";
+import { slugify } from "../utils/utils";
 
 function AddProduct(props) {
-  const [name, setName] = useState();
+  const [name, setName] = useState("");
   const [price, setPrice] = useState();
   const [description, setDescription] = useState();
   const [image, setImage] = useState();
@@ -23,8 +23,20 @@ function AddProduct(props) {
     setImage(e.target.value);
   }
 
+  function productExist(productName) {
+    const products = JSON.parse(localStorage.getItem("products"));
+
+    return products.find(p => p.name === productName);
+  }
+
   function addProduct(e) {
     e.preventDefault();
+    const exist = productExist(name);
+
+    if (exist) {
+      return setName("");
+    }
+
     props.addProduct({ name, price, description, image, slug: slugify(name) });
     props.history.push("/");
   }
@@ -35,7 +47,7 @@ function AddProduct(props) {
         <h1>Add Product</h1>
         <div>
           <label>Name:</label>
-          <input required onChange={handleChangeName} />
+          <input required value={name} onChange={handleChangeName} />
         </div>
         <div>
           <label>Price in $:</label>

@@ -32,10 +32,12 @@ function App() {
     localStorage.setItem("products", JSON.stringify(updatedProducts));
   }
 
+  function productIndex(products, slug) {
+    return products.findIndex(p => p.product.slug === slug);
+  }
+
   function addToCart({ product, quantity }) {
-    const index = cart.findIndex(
-      itemInCart => itemInCart.product.slug === product.slug
-    );
+    const index = productIndex(cart, product.slug);
 
     let newCart = [];
 
@@ -53,6 +55,32 @@ function App() {
     localStorage.setItem("cart", JSON.stringify(newCart));
   }
 
+  function removeProduct(value, remove) {
+    const index = productIndex(cart, value.product.slug);
+    const { quantity, product } = value;
+    let newCart;
+
+    if (remove && quantity < 2) {
+      newCart = cart.filter(item => item.product.slug !== product.slug);
+    } else {
+      newCart = [...cart];
+      newCart[index] = {
+        product,
+        quantity: remove ? quantity - 1 : quantity + 1
+      };
+    }
+
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
+  }
+
+  function clearProduct({ product }) {
+    const newCart = cart.filter(item => item.product.slug !== product.slug);
+
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
+  }
+
   return (
     <Router>
       <div id="app">
@@ -62,7 +90,11 @@ function App() {
         </aside>
 
         <main>
-          <Cart cart={cart} />
+          <Cart
+            cart={cart}
+            removeProduct={removeProduct}
+            clearProduct={clearProduct}
+          />
           <Route
             exact
             path="/"
